@@ -3,7 +3,7 @@ name: 'Workflow of Child REPO'
 on:
   push:
     branches:
-      - main
+      - main 
 
 jobs: 
   trigger_workflow:
@@ -13,12 +13,15 @@ jobs:
         shell: bash
         run: |
           echo "I am Workflow of Child REPO"
+          eval `ssh-agent -s`
+          ssh-add - <<< '${{ secrets.COMMIT_KEY }}'
+
       - name: Trigger parent repo workflow
         uses: convictional/trigger-workflow-and-wait@v1.6.1
         with:
           owner: JordanKikleo
           repo: parent_repo
-          github_token: ${{ secrets.AUTH_TOKEN }}
+          github_token: ${{ secrets.COMMIT_KEY }}
           workflow_file_name: main_workflow.yml
           ref: main
           wait_interval: 10
