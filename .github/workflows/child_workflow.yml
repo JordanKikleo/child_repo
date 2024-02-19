@@ -1,0 +1,27 @@
+name: 'Workflow of Child REPO'
+
+on:
+  push:
+    branches:
+      - main
+
+jobs: 
+  trigger_workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo Workflow name
+        shell: bash
+        run: |
+          echo "I am Workflow of Child REPO"
+      - name: Trigger parent repo workflow
+        uses: convictional/trigger-workflow-and-wait@v1.6.1
+        with:
+          owner: JordanKikleo
+          repo: parent_repo
+          github_token: ${{ secrets.AUTH_TOKEN }}
+          workflow_file_name: main_workflow.yml
+          ref: main
+          wait_interval: 10
+          propagate_failure: true
+          trigger_workflow: true
+          wait_workflow: true
