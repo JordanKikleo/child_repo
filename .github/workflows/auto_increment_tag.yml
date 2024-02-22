@@ -1,0 +1,49 @@
+name: Auto-increment Tag
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  auto_increment_tag:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        ssh-key: ${{secrets.CHILD_COMMIT_KEY}}
+
+    - name: Pull latest tags
+      run: git fetch --tags
+      
+    - name: Get latest tag
+      id: tag
+      run: echo "TAG=$(git tag --sort=-version:refname | head -n 1 || echo 'v1.0.0')" >> $GITHUB_OUTPUT
+      
+    - name: Increment tag
+      id: increment
+      run: |
+        IFS='.' read -ra VERSION <<< "${{ steps.tag.outputs.TAG }}"
+        V1=${VERSION[0]#v}
+        V2=${VERSION[1]}
+        V3=${VERSION[2]}
+        if [[ "$V3" -lt "99" ]]; then
+            V3=$((V3 + 1))
+        else
+            if [[ "$V2" -lt "99" ]]; then
+            V2=$((V2 + 1))
+            else
+            V1=$((V1 + 1)) 
+            V2=0
+            fi
+            V3=0
+        fi
+        echo "NEW_TAG=v$V1.$V2.$V3" >> $GITHUB_OUTPUT
+
+    - name: Create new tag
+      run: git tag ${{ steps.increment.outputs.NEW_TAG }}
+      
+    - name: Push new tag
+      run: git push origin ${{ steps.increment.outputs.NEW_TAG }}
