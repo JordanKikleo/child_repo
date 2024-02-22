@@ -1,0 +1,34 @@
+name: Auto-increment Tag
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  auto_increment_tag:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        ssh-key: "${{secrets.CHILD_COMMIT_KEY}}"
+      
+    - name: Get latest tag
+      id: tag
+      run: echo "TAG=$(git describe --tags --abbrev=0 || echo 'v1.0.0')" >> $GITHUB_OUTPUT
+      
+    - name: Increment tag
+      id: increment
+      run: |
+        if [[ "${{ steps.tag.outputs.TAG }}" == "v1.0.0" ]]; then
+            echo "NEW_TAG=${{ steps.tag.outputs.TAG }}" >> $GITHUB_OUTPUT
+        else
+            echo "NEW_TAG=$(echo ${{ steps.tag.outputs.TAG }} | awk -F '.' 'BEGIN{OFS = "."} {$NF = $NF + 1;} 1')" >> $GITHUB_OUTPUT
+        fi      
+    - name: Create new tag
+      run: git tag ${{ steps.increment.outputs.NEW_TAG }}
+      
+    - name: Push new tag
+      run: git push origin ${{ steps.increment.outputs.NEW_TAG }}
