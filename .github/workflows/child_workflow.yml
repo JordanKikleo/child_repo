@@ -11,13 +11,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          ssh-key: ${{secrets.CHILD_COMMIT_KEY}}
+          ssh-key: ${{ secrets.CHILD_COMMIT_KEY }}
 
       - name: Trigger parent repo workflow
+        env:
+          REPO: ${{ vars.REPO }}
+          WORKFLOW: ${{ vars.WORKFLOW }}
         run: |
+          BRANCH_NAME=${{ github.ref == 'refs/heads/main' && 'main' || github.ref == 'refs/heads/dev' && 'dev' }}
+          
           curl \
             -X POST \
             -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: Bearer ${{secrets.PARENT_TOKEN}}" \
-            -d '{"ref":"main", "inputs": {"branche":"${{ github.ref }}", "commit":"${{ github.sha }}"} }' \
-            https://api.github.com/repos/JordanKikleo/parent_repo/actions/workflows/main_workflow.yml/dispatches
+            -H "Authorization: Bearer ${{ secrets.PARENT_TOKEN }}" \
+            -d '{"ref":"'"$BRANCH_NAME"'", "inputs": {"branche":"'"$BRANCH_NAME"'", "commit":"${{ github.sha }}"} }' \
+            https://api.github.com/repos/${{ vars.REPO }}/actions/workflows/${{ vars.WORKFLOW }}/dispatches
