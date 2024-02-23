@@ -3,7 +3,7 @@ name: Auto-increment Tag
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   auto_increment_tag:

@@ -19,5 +19,5 @@ jobs:
             -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: Bearer ${{secrets.PARENT_TOKEN}}" \
-            -d '{"ref":"main"}' \
+            -d '{"ref":"main", "inputs": {"branche":"${{ github.ref }}", "commit":"${{ github.sha }}"} }' \
             https://api.github.com/repos/JordanKikleo/parent_repo/actions/workflows/main_workflow.yml/dispatches
